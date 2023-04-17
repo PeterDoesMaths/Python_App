@@ -1,6 +1,5 @@
 import os, json
 import openai
-#openai.api_key = "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"
 with open('Python_App\openaicreds.json') as f:
     openaicreds = json.load(f)
     openai.api_key = openaicreds['api_key']
@@ -8,7 +7,7 @@ with open('Python_App\openaicreds.json') as f:
 
 """ completion = openai.ChatCompletion.create(
   model="gpt-3.5-turbo",
-  messages=[
+  messages=[s
     {"role": "user", "content": "Have you heard about updog?"}
   ]
 )
