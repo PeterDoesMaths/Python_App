@@ -9,3 +9,5 @@ DataScienceGPT (bigger and better name coming soon) will be a Python app that us
     * Run the code,
     * Provide the user with the output (this could be a figure, table, number etc.), and an interpretation.
 4. At this point the user could leave a happy chappy, or if the task is not fulfilled to their liking, they can provide feedback. The app will use this feedback to edit the prompt in step 2, and the re-run step 3.
+
+In the future, this will be turned into a Web app.
