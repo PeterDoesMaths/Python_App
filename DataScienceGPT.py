@@ -1,4 +1,4 @@
-import os, json
+import os, json, re
 import openai
 with open('openaicreds.json') as f:
     openaicreds = json.load(f)
@@ -15,11 +15,12 @@ completion = openai.ChatCompletion.create(
   ]
 )
 
-print(completion.choices[0].message.content)
-
 fullResponse = completion.choices[0].message.content
-start_index = fullResponse.find("```python") + 10
-end_index = fullResponse.find("```", start_index)
-code = fullResponse[start_index:end_index]
 
-exec(code)
+print(fullResponse)
+
+# Find all code and run it.
+code_pattern = r'```python(.*?)```'
+matches = re.findall(code_pattern, fullResponse, re.DOTALL)
+for match in matches:
+    exec(match)
