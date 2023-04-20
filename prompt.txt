@@ -1,5 +1,6 @@
-The user has uploaded data "companies.txt" with the heading
-Assets	Sales	MarketValue	Profits	CashFlow	Employees
-2687	1870	1890	145.7	352.2	18.2
-The user has requested: "Produce scatterplots of MarketValue (on the y-axis) against each of the other predictors (on the x-axis) and plot the figures in a 2 by 3 grid".
+The user has uploaded data "dataFile" with the heading
+
+dataHead
+
+The user has requested: "userMessage".
 Write code to achieve this task.

@@ -1,5 +1,5 @@
 import openai
-import os, json
+import os, json, re
 from flask import Flask, render_template, request
 import pandas as pd
 
@@ -30,30 +30,47 @@ def upload():
         raise ValueError("Unsupported file format")
 
     # Display the first five rows of the data
-    # return data.head().to_html()
+    dataHead =  data.head()
+    dataHead = pd.DataFrame.to_string(dataHead)
 
     # Get the prompt from the user
-    prompt = request.form['prompt']
+    userMessage = request.form['prompt']
 
-    # Get system prompt and user prompt
+    # Get system prompt
     systemMessage = open('system_prompt.txt','r').read()
-    userMessage = prompt
+
+    # Create prompt from user input
+    with open('prompt.txt','r') as f:
+        prompt = f.read()
+        prompt = prompt.replace('dataFile', file.filename)
+        prompt = prompt.replace('dataHead', dataHead)
+        prompt = prompt.replace('userMessage', userMessage)
     
+    print(prompt)
+
     # Generate response from ChatGPT
     completion = openai.ChatCompletion.create(
-    model="gpt-3.5-turbo",
-    messages=[
-        {"role": "system", "content": systemMessage},
-        {"role": "user", "content": userMessage}
-    ], # can also add assistant role and message for one-shot prompting
-    temperature = 0.2 # a measure of how deterministic the output is (between 0 and 2)
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": systemMessage},
+            {"role": "user", "content": prompt}
+        ], # can also add assistant role and message for one-shot prompting
+        temperature = 0.2 # a measure of how deterministic the output is (between 0 and 2)
     )
 
     # retrieve responce and print
     fullResponse = completion.choices[0].message.content
+    # formatted_response = fullResponse.replace('\n', '<br>')
+    # formatted_response = f'<pre>{formatted_response}</pre>'
+
+    # Find all code and run it.
+    # code_pattern = r'```python(.*?)```'
+    # code = re.findall(code_pattern, fullResponse, re.DOTALL)
+    # for match in code:
+    #     exec(match)
 
     # Render the template with the prompt and the head of the data
-    return render_template('result.html', prompt=prompt, data=data.head(), fullResponse=fullResponse)
+    return render_template('result.html', userMessage=userMessage, data=data.head(), fullResponse=fullResponse)
 
 if __name__ == '__main__':
     app.run(debug=True)
