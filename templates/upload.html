@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Upload a CSV file</title>
+    <title>Upload a data file</title>
 </head>
 <body>
-    <h1>Upload a CSV file</h1>
+    <h1>Upload a data file</h1>
     <form action="/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="file">
+        <input type="file" name="file" accept=".csv,.txt,.xlsx">
+        <label for="prompt">Enter a prompt:</label>
+        <input type="text" name="prompt"><br><br>
         <input type="submit" value="Upload">
     </form>
 </body>

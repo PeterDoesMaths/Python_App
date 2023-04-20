@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Result</title>
+</head>
+<body>
+    <h1>Upload Result</h1>
+    <p><strong>Prompt:</strong> {{ prompt }}</p>
+    <p><strong>Data Head:</strong></p>
+    <table>
+        {% for col in data.columns %}
+        <th>{{ col }}</th>
+        {% endfor %}
+        {% for row in data.values %}
+        <tr>
+            {% for val in row %}
+            <td>{{ val }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+    <p><strong>Response:</strong> {{ fullResponse }}</p>
+</body>
+</html>
