@@ -1,4 +1,4 @@
-The user has uploaded data "dataFile" with the heading
+The user has uploaded data "dataFile" with the header
 
 dataHead
 

@@ -1,7 +1,9 @@
 import openai
-import os, json, re
+import json, re
 from flask import Flask, render_template, request
 import pandas as pd
+from io import StringIO
+import sys
 
 app = Flask(__name__)
 
@@ -10,6 +12,7 @@ with open('openaicreds.json') as f:
     openaicreds = json.load(f)
     openai.api_key = openaicreds['api_key']
 
+# render data upload page
 @app.route("/")
 def index():
     return render_template('upload.html')
@@ -38,6 +41,7 @@ def upload():
 
     # Get system prompt
     systemMessage = open('system_prompt.txt','r').read()
+    interpMessage = open('interp_system_prompt.txt','r').read()
 
     # Create prompt from user input
     with open('prompt.txt','r') as f:
@@ -60,17 +64,43 @@ def upload():
 
     # retrieve responce and print
     fullResponse = completion.choices[0].message.content
-    # formatted_response = fullResponse.replace('\n', '<br>')
-    # formatted_response = f'<pre>{formatted_response}</pre>'
+    print(fullResponse)
+
+    # Redirect stdout to a StringIO object to capture output
+    old_stdout = sys.stdout
+    sys.stdout = output_buffer = StringIO()
 
     # Find all code and run it.
-    # code_pattern = r'```python(.*?)```'
-    # code = re.findall(code_pattern, fullResponse, re.DOTALL)
-    # for match in code:
-    #     exec(match)
+    code_pattern = r'```python(.*?)```'
+    code = re.findall(code_pattern, fullResponse, re.DOTALL)
+    for match in code:
+        exec(match)
+
+    # Reset stdout and get captured output
+    sys.stdout = old_stdout
+    output = output_buffer.getvalue()
+
+    with open('interp_prompt.txt','r') as f:
+        interpPrompt = f.read()
+        interpPrompt = interpPrompt.replace('dataFile', file.filename)
+        interpPrompt = interpPrompt.replace('dataHead', dataHead)
+        interpPrompt = interpPrompt.replace('pythonOutput', output)
+
+    # Interpret python output using ChatGPT
+    interpretation = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": interpMessage},
+            {"role": "user", "content": interpPrompt}
+        ],
+        temperature = 0.2 
+    )
+
+    interpResponse = interpretation.choices[0].message.content
+    print(interpResponse)
 
     # Render the template with the prompt and the head of the data
-    return render_template('result.html', userMessage=userMessage, data=data.head(), fullResponse=fullResponse)
+    return render_template('result.html', userMessage=userMessage, data=data.head(), fullResponse=fullResponse, output=output, interpretation=interpResponse)
 
 if __name__ == '__main__':
     app.run(debug=True)

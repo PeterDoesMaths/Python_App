@@ -1,0 +1,10 @@
+The user has requested: "userMessage".
+They are asking about a data set with the header
+
+dataHead
+
+Python code has been executed and gave the output
+
+pythonOutput
+
+Interpret the output to answer the user's request.
