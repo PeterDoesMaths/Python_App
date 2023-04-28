@@ -12,6 +12,18 @@ with open('openaicreds.json') as f:
     openaicreds = json.load(f)
     openai.api_key = openaicreds['api_key']
 
+# Define chatGPT completion function
+def get_completion(systemMessage, prompt):
+    messages=[
+            {"role": "system", "content": systemMessage},
+            {"role": "user", "content": prompt}]
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=messages,
+        temperature=0, # this is the degree of randomness of the model's output
+    )
+    return response.choices[0].message.content
+
 # render data upload page
 @app.route("/")
 def index():
@@ -52,7 +64,7 @@ def upload():
     
     print(prompt)
 
-    # Generate response from ChatGPT
+    """ # Generate response from ChatGPT
     completion = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -60,10 +72,12 @@ def upload():
             {"role": "user", "content": prompt}
         ], # can also add assistant role and message for one-shot prompting
         temperature = 0.2 # a measure of how deterministic the output is (between 0 and 2)
-    )
+    ) """
+    # Generate response from ChatGPT
+    fullResponse = get_completion(systemMessage, prompt)
 
     # retrieve responce and print
-    fullResponse = completion.choices[0].message.content
+    #fullResponse = completion.choices[0].message.content
     print(fullResponse)
 
     # Redirect stdout to a StringIO object to capture output
@@ -84,9 +98,10 @@ def upload():
         interpPrompt = f.read()
         interpPrompt = interpPrompt.replace('dataFile', file.filename)
         interpPrompt = interpPrompt.replace('dataHead', dataHead)
+        interpPrompt = interpPrompt.replace('pythonCode', fullResponse)
         interpPrompt = interpPrompt.replace('pythonOutput', output)
 
-    # Interpret python output using ChatGPT
+    """ # Interpret python output using ChatGPT
     interpretation = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -94,10 +109,14 @@ def upload():
             {"role": "user", "content": interpPrompt}
         ],
         temperature = 0.2 
-    )
+    ) """
+    # Interpret python output using ChatGPT
+    interpResponse = get_completion(interpMessage, interpPrompt)
 
-    interpResponse = interpretation.choices[0].message.content
+    #interpResponse = interpretation.choices[0].message.content
     print(interpResponse)
+
+    # Self-reflection (ask ChatGPT if user query is answered)
 
     # Render the template with the prompt and the head of the data
     return render_template('result.html', userMessage=userMessage, data=data.head(), fullResponse=fullResponse, output=output, interpretation=interpResponse)

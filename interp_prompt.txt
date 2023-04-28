@@ -1,10 +1,14 @@
 The user has requested: "userMessage".
 They are asking about a data set with the header
 
-dataHead
+```dataHead```
 
-Python code has been executed and gave the output
+The python code below has been executed to answer the user request
 
-pythonOutput
+```pythonCode```
 
-Interpret the output to answer the user's request.
+ Running the code gives the output
+
+```pythonOutput```
+
+Interpret the output to answer the user's request in one sentence.
