@@ -4,7 +4,10 @@ from flask import Flask, render_template, request
 import pandas as pd
 from io import StringIO
 import sys
-import csv
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 app = Flask(__name__)
 
@@ -63,7 +66,6 @@ def upload():
     # Create prompt from user input
     with open('prompt.txt','r') as f:
         prompt = f.read()
-        #prompt = prompt.replace('dataFile', file.filename)
         prompt = prompt.replace('dataHead', dataHead)
         prompt = prompt.replace('userMessage', userMessage)
     
@@ -73,7 +75,6 @@ def upload():
     fullResponse = get_completion(systemMessage, prompt)
 
     # retrieve responce and print
-    #fullResponse = completion.choices[0].message.content
     print(fullResponse)
 
     # Redirect stdout to a StringIO object to capture output
@@ -83,8 +84,20 @@ def upload():
     # Find all code and run it.
     code_pattern = r'```python(.*?)```'
     code = re.findall(code_pattern, fullResponse, re.DOTALL)
+
+    i = 0
     for match in code:
         exec(match)
+
+        # check for plots and save them to disk
+        plot_pattern = r'plt\.show\(\)'
+        plot_matches = re.findall(plot_pattern, match)
+        for _ in enumerate(plot_matches):
+            i += 1
+            plt.savefig(f'static\plot_{i}.png')
+            plt.clf()  # clear the plot for the next one
+    
+    num_plots = i
 
     # Reset stdout and get captured output
     sys.stdout = old_stdout
@@ -99,8 +112,6 @@ def upload():
 
     # Interpret python output using ChatGPT
     interpResponse = get_completion(interpMessage, interpPrompt)
-
-    #interpResponse = interpretation.choices[0].message.content
     print(interpResponse)
 
     # Self-reflection (ask ChatGPT if user query is answered)
@@ -110,7 +121,13 @@ def upload():
         file.truncate(0)
 
     # Render the template with the prompt and the head of the data
-    return render_template('result.html', userMessage=userMessage, data=data.head(), fullResponse=fullResponse, output=output, interpretation=interpResponse)
+    return render_template('result.html',
+                            userMessage=userMessage,
+                            data=data.head(), 
+                            fullResponse=fullResponse, 
+                            output=output, 
+                            interpretation=interpResponse,
+                            num_plots=num_plots)
 
 if __name__ == '__main__':
     app.run(debug=True)

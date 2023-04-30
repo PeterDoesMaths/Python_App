@@ -24,6 +24,13 @@
     <p><strong>Python Output:</strong></p>
     <pre>{{ output }}</pre>
 
+    {% if num_plots > 0 %}
+    <p><strong>Plots:</strong></p>
+    {% for i in range(num_plots) %}
+    <img src="{{ url_for('static', filename='plot_'+(i+1)|string+'.png') }}" alt="Plot {{i+1}}">
+    {% endfor %}
+    {% endif %}
+
     <p><strong>Interpretation:</strong></p>
     <pre>{{ interpretation }}</pre>
 </body>
