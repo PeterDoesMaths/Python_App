@@ -4,6 +4,7 @@ from flask import Flask, render_template, request
 import pandas as pd
 from io import StringIO
 import sys
+import csv
 
 app = Flask(__name__)
 
@@ -19,6 +20,7 @@ def get_completion(systemMessage, prompt):
             {"role": "user", "content": prompt}]
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
+        #model="gpt-4",
         messages=messages,
         temperature=0, # this is the degree of randomness of the model's output
     )
@@ -43,6 +45,9 @@ def upload():
         data = pd.read_excel(file)
     else:
         raise ValueError("Unsupported file format")
+    
+    # Write data to csv file
+    data.to_csv('data.csv', index=False)
 
     # Display the first five rows of the data
     dataHead =  data.head()
@@ -58,21 +63,12 @@ def upload():
     # Create prompt from user input
     with open('prompt.txt','r') as f:
         prompt = f.read()
-        prompt = prompt.replace('dataFile', file.filename)
+        #prompt = prompt.replace('dataFile', file.filename)
         prompt = prompt.replace('dataHead', dataHead)
         prompt = prompt.replace('userMessage', userMessage)
     
     print(prompt)
 
-    """ # Generate response from ChatGPT
-    completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": systemMessage},
-            {"role": "user", "content": prompt}
-        ], # can also add assistant role and message for one-shot prompting
-        temperature = 0.2 # a measure of how deterministic the output is (between 0 and 2)
-    ) """
     # Generate response from ChatGPT
     fullResponse = get_completion(systemMessage, prompt)
 
@@ -96,20 +92,11 @@ def upload():
 
     with open('interp_prompt.txt','r') as f:
         interpPrompt = f.read()
-        interpPrompt = interpPrompt.replace('dataFile', file.filename)
+        #interpPrompt = interpPrompt.replace('dataFile', file.filename)
         interpPrompt = interpPrompt.replace('dataHead', dataHead)
         interpPrompt = interpPrompt.replace('pythonCode', fullResponse)
         interpPrompt = interpPrompt.replace('pythonOutput', output)
 
-    """ # Interpret python output using ChatGPT
-    interpretation = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": interpMessage},
-            {"role": "user", "content": interpPrompt}
-        ],
-        temperature = 0.2 
-    ) """
     # Interpret python output using ChatGPT
     interpResponse = get_completion(interpMessage, interpPrompt)
 
@@ -117,6 +104,10 @@ def upload():
     print(interpResponse)
 
     # Self-reflection (ask ChatGPT if user query is answered)
+
+    # clear data file
+    with open('data.csv', mode='w', newline='') as file:
+        file.truncate(0)
 
     # Render the template with the prompt and the head of the data
     return render_template('result.html', userMessage=userMessage, data=data.head(), fullResponse=fullResponse, output=output, interpretation=interpResponse)
